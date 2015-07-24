@@ -97,7 +97,7 @@ class CommandMessage(Message):
     @property
     def command(self):
         text = self.raw_message.get('text', '').split()
-        return text[0][1:].lower() if len(text) else ''
+        return text[0][1:].lower().split('@')[0] if len(text) else ''
 
     @property
     def arguments(self):

@@ -8,15 +8,15 @@ class InvalidMessage(Exception):
 
 class Message():
     @staticmethod
-    def from_raw(raw_message):
+    def from_raw(raw_message, bot_name):
         if Message.is_join_message(raw_message.get('message', {})):
-            return JoinMessage(raw_message)
+            return JoinMessage(raw_message, bot_name)
         if Message.is_left_message(raw_message.get('message', {})):
-            return LeftMessage(raw_message)
+            return LeftMessage(raw_message, bot_name)
         if Message.is_command_message(raw_message.get('message', {})):
-            return CommandMessage(raw_message)
+            return CommandMessage(raw_message, bot_name)
 
-        return Message(raw_message)
+        return Message(raw_message, bot_name)
 
     @staticmethod
     def is_join_message(message):
@@ -31,9 +31,10 @@ class Message():
         return 'text' in message.keys() and len(message['text']) and \
             message['text'][0] == '/'
 
-    def __init__(self, raw):
+    def __init__(self, raw, bot_name):
         self.update_id = raw.get('update_id', 0)
         self.raw_message = raw.get('message', {})
+        self.bot_name = bot_name
 
     @property
     def id(self):
@@ -96,8 +97,25 @@ class LeftMessage(Message):
 class CommandMessage(Message):
     @property
     def command(self):
-        text = self.raw_message.get('text', '').split()
-        return text[0][1:].lower().split('@')[0] if len(text) else ''
+        text = self.raw_message.get('text', '').lower().split()
+
+        if not len(text):
+            return ''
+
+        if self._is_direct_command(text[0]):
+            if not self._is_direct_command_to_us(text[0]):
+                return ''
+
+        return self._extract_command(text[0])
+
+    def _is_direct_command(self, command):
+        return '@' in command
+
+    def _is_direct_command_to_us(self, command):
+        return self.bot_name == command.split('@')[1]
+
+    def _extract_command(self, command):
+        return command[1:].split('@')[0]
 
     @property
     def arguments(self):
@@ -106,9 +124,10 @@ class CommandMessage(Message):
 
 
 class TelegramAPIHelper():
-    def __init__(self, token):
+    def __init__(self, token, bot_name):
         self.last_update_id = 0
         self.url = "https://api.telegram.org/bot%s/" % token
+        self.bot_name = bot_name.lower()
 
     def get_new_messages(self, mark_as_read=True):
         data = self._get_data(mark_as_read)
@@ -148,7 +167,7 @@ class TelegramAPIHelper():
     def _parse_raw_messages(self):
         messages = []
         for raw_message in self.raw_messages:
-            message = Message.from_raw(raw_message)
+            message = Message.from_raw(raw_message, self.bot_name)
             messages.append(message)
 
         return messages

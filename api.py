@@ -9,12 +9,15 @@ class InvalidMessage(Exception):
 class Message():
     @staticmethod
     def from_raw(raw_message, bot_name):
-        if Message.is_join_message(raw_message.get('message', {})):
+        message = raw_message.get('message', {})
+        if Message.is_join_message(message):
             return JoinMessage(raw_message, bot_name)
-        if Message.is_left_message(raw_message.get('message', {})):
+        if Message.is_left_message(message):
             return LeftMessage(raw_message, bot_name)
-        if Message.is_command_message(raw_message.get('message', {})):
+        if Message.is_command_message(message):
             return CommandMessage(raw_message, bot_name)
+        if Message.is_user_message(message):
+            return UserMessage(raw_message, bot_name)
 
         return Message(raw_message, bot_name)
 
@@ -30,6 +33,10 @@ class Message():
     def is_command_message(message):
         return 'text' in message.keys() and len(message['text']) and \
             message['text'][0] == '/'
+
+    @staticmethod
+    def is_user_message(message):
+        return 'text' in message.keys()
 
     def __init__(self, raw, bot_name):
         self.update_id = raw.get('update_id', 0)
@@ -121,6 +128,16 @@ class CommandMessage(Message):
     def arguments(self):
         text = self.raw_message.get('text', '').split()
         return text[1:] if len(text) else []
+
+
+class UserMessage(Message):
+    @property
+    def text(self):
+        return self.raw_message.get('text', '').lower()
+
+    @property
+    def original_text(self):
+        return self.raw_message.get('text', '')
 
 
 class TelegramAPIHelper():

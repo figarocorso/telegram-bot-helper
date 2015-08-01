@@ -97,10 +97,21 @@ class Job():
         return command in self.keywords
 
     def _user_text_match(self, text):
-        for word in self.keywords:
-            if word.lower() not in text.lower():
+        for phrase in self.keywords:
+            if not self._text_contains(text, phrase):
                 return False
         return True
+
+    def _text_contains(self, text, phrase):
+        string = text.lower()
+        needle = phrase.lower()
+        if " %s " % needle in string or \
+           (needle in string and len(string) == len(needle)) or \
+           string.find("%s " % needle) == 0 or \
+           string.find(" %s" % needle) == (len(string) - (len(needle) + 1)):
+            return True
+
+        return False
 
     def should_be_triggered(self):
         if not self.countdown:

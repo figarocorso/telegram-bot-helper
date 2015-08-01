@@ -87,9 +87,11 @@ class Job():
         return self.raw_job.get('job_id', str(uuid.uuid1()))
 
     def matches(self, message):
-        if isinstance(message, CommandMessage):
+        if self.message_type == 'command' and \
+           isinstance(message, CommandMessage):
             return self._command_match(message.command)
-        elif isinstance(message, UserMessage):
+        elif (self.message_type == 'user_message' and
+              isinstance(message, UserMessage)):
             return self._user_text_match(message.text)
         return False
 

@@ -31,5 +31,6 @@ The kind of jobs that this library would handle should be described in a JSON fi
 * **countdown**: For *repeated_message* the number of times the keywords have to appear
 * **job_action**: The action triggered. There are currently two kind of job_actions suported:
  * *phrase*: Returns the data string
- * *random_phrase*: Return a random string from the data strings list
+ * *random_phrase*: Returns a random string from the data strings list
+ * *blog_link*: Returns a non used (in 24 hours) blog link from the RSS present at data field
 * **data**: The data used to return a value

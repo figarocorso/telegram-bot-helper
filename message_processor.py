@@ -3,12 +3,38 @@ from telegram_bot_helper.api import CommandMessage, UserMessage
 from random import randrange
 
 import datetime
+import feedparser
 import uuid
 import json
 
 
 class BadJob(Exception):
     pass
+
+
+class JobsLinks():
+    links = {}
+
+    @classmethod
+    def add(cls, link):
+        cls.links[link] = datetime.datetime.now()
+
+    @classmethod
+    def already_sent(cls, link):
+        return link in cls.links
+
+    @classmethod
+    def clean(cls):
+        one_day = 86400
+        now = datetime.datetime.now()
+        for link, timestamp in cls.links.iteritems():
+            if (now - timestamp).seconds > one_day:
+                del(cls.links[link])
+
+    @classmethod
+    def add_and_clean(cls, link):
+        cls.add(link)
+        cls.clean()
 
 
 class JobStatus():
@@ -49,7 +75,7 @@ class JobStatus():
 
 class Job():
     available_types = ['user_message', 'command', 'repeated_message']
-    available_jobs = ['phrase', 'random_phrase']
+    available_jobs = ['phrase', 'random_phrase', 'blog_link']
 
     def __init__(self, raw_job):
         self.raw_job = raw_job
@@ -127,11 +153,27 @@ class Job():
         return trigger
 
     def result(self):
-        if self.job_action == 'random_phrase':
-            return self.data[randrange(len(self.data))]
-        elif self.job_action == 'phrase':
-            return self.data
-        return ''
+        return getattr(self, "_%s_result" % self.job_action)()
+
+    def _random_phrase_result(self):
+        return self.data[randrange(len(self.data))]
+
+    def _phrase_result(self):
+        return self.data
+
+    def _blog_link_result(self):
+        try:
+            data = feedparser.parse(self.data)
+            if not len(data) or not len(data['entries']):
+                return ''
+            for entry in data['entries']:
+                link = entry['link']
+                if JobsLinks.already_sent(link):
+                    continue
+                JobsLinks.add_and_clean(link)
+                return link
+        except:
+            return ''
 
 
 class MessageProcessor():

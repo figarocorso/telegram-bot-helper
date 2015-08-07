@@ -80,7 +80,7 @@ class Job():
     def __init__(self, raw_job):
         self.raw_job = raw_job
         for field in ['keywords', 'message_type', 'job_action', 'data',
-                      'minutes_timeout', 'countdown', 'job_id']:
+                      'minutes_timeout', 'countdown', 'job_id', 'frequency']:
             self.__dict__[field] = getattr(self, "_extract_%s" % field)()
 
     def _extract_keywords(self):
@@ -111,6 +111,9 @@ class Job():
 
     def _extract_job_id(self):
         return self.raw_job.get('job_id', str(uuid.uuid1()))
+
+    def _extract_frequency(self):
+        return self.raw_job.get('frequency', 100)
 
     def matches(self, message):
         if self.message_type == 'command' and \
@@ -153,6 +156,9 @@ class Job():
         return trigger
 
     def result(self):
+        if randrange(100) >= self.frequency:
+            return ''
+
         return getattr(self, "_%s_result" % self.job_action)()
 
     def _random_phrase_result(self):

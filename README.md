@@ -29,6 +29,7 @@ The kind of jobs that this library would handle should be described in a JSON fi
 * **keywords**: The command or text we are looking for
 * **minutes_timeout**: For *repeated_message* the number of minutes within the keywords have to been written
 * **countdown**: For *repeated_message* the number of times the keywords have to appear
+* **frequency**: Return the job result only this % of times
 * **job_action**: The action triggered. There are currently two kind of job_actions suported:
  * *phrase*: Returns the data string
  * *random_phrase*: Returns a random string from the data strings list

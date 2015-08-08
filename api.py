@@ -140,6 +140,35 @@ class UserMessage(Message):
         return self.raw_message.get('text', '')
 
 
+class AnswerMessage():
+    method_correlation = {
+        'text': 'sendMessage',
+        'audio': 'sendAudio',
+        'photo': 'sendPhoto',
+    }
+
+    def __init__(self, data, message_type='text'):
+        self.message_type = message_type.lower()
+        if self.message_type not in self.method_correlation.keys():
+            raise InvalidMessage("Wrong answer message type %s" % message_type)
+
+        self.data = {message_type: data}
+
+    def set_destination_chat(self, chat_id):
+        self.data['chat_id'] = chat_id
+
+    def in_reply_to(self, message):
+        self.data['chat_id'] = message.chat_id
+
+    @property
+    def method(self):
+        return self.method_correlation.get(self.message_type, 'sendMessage')
+
+    @property
+    def data(self):
+        return self.data
+
+
 class TelegramAPIHelper():
     def __init__(self, token, bot_name):
         self.last_update_id = 0
@@ -158,16 +187,19 @@ class TelegramAPIHelper():
             return
         self.last_update_id = self.messages[-1].update_id
 
-    def send_message(self, chat, text, tries=5):
+    def send_message(self, data, method='sendMessage', tries=5):
         success = False
         while not success and tries > 0:
-            data = {'chat_id': chat, 'text': text}
-            success = self._send_post_request("sendMessage", data)
+            success = self._send_post_request(method, data)
             tries -= 1
             sleep(1)
 
-    def reply(self, message, text):
-        self.send_message(message.chat_id, text)
+    def send_answer(self, answer):
+        self.send_message(answer.data, answer.method)
+
+    def reply(self, message, answer):
+        answer.in_reply_to(message)
+        self.send_answer(answer)
 
     def _get_data(self, mark_as_read):
         params = {'offset': self.last_update_id + 1} if mark_as_read else {}

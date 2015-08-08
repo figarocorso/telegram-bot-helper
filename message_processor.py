@@ -1,4 +1,5 @@
-from telegram_bot_helper.api import CommandMessage, UserMessage
+from telegram_bot_helper.api import (AnswerMessage, CommandMessage,
+                                     UserMessage)
 
 from random import randrange
 
@@ -75,7 +76,7 @@ class JobStatus():
 
 class Job():
     available_types = ['user_message', 'command', 'repeated_message']
-    available_jobs = ['phrase', 'random_phrase', 'blog_link']
+    available_jobs = ['phrase', 'random_phrase', 'blog_link', 'audio']
 
     def __init__(self, raw_job):
         self.raw_job = raw_job
@@ -162,10 +163,13 @@ class Job():
         return getattr(self, "_%s_result" % self.job_action)()
 
     def _random_phrase_result(self):
-        return self.data[randrange(len(self.data))]
+        return AnswerMessage(self.data[randrange(len(self.data))])
 
     def _phrase_result(self):
-        return self.data
+        return AnswerMessage(self.data)
+
+    def _audio_result(self):
+        return AnswerMessage(self.data, message_type='audio')
 
     def _blog_link_result(self):
         try:
@@ -177,7 +181,8 @@ class Job():
                 if JobsLinks.already_sent(link):
                     continue
                 JobsLinks.add_and_clean(link)
-                return link
+
+                return AnswerMessage(link)
         except:
             return ''
 

@@ -34,4 +34,5 @@ The kind of jobs that this library would handle should be described in a JSON fi
  * *phrase*: Returns the data string
  * *random_phrase*: Returns a random string from the data strings list
  * *blog_link*: Returns a non used (in 24 hours) blog link from the RSS present at data field
+ * *audio*: Returns a voice message already uploaded to Telegram servers which id is stored at data field
 * **data**: The data used to return a value

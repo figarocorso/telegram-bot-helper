@@ -202,10 +202,16 @@ class TelegramAPIHelper():
         self.send_answer(answer)
 
     def _get_data(self, mark_as_read):
-        params = {'offset': self.last_update_id + 1} if mark_as_read else {}
+        timeout = 12 * 60 * 60
+        params = {'offset': self.last_update_id + 1, 'timeout': timeout}
+        params = params if mark_as_read else {}
         try:
-            response = requests.get(self.url + "getUpdates", params=params)
+            response = requests.get(self.url + "getUpdates",
+                                    params=params,
+                                    timeout=timeout)
         except requests.exceptions.ConnectionError:
+            return {}
+        except requests.exceptions.Timeout:
             return {}
 
         if not response.ok:

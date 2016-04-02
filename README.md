@@ -30,9 +30,10 @@ The kind of jobs that this library would handle should be described in a JSON fi
 * **minutes_timeout**: For *repeated_message* the number of minutes within the keywords have to been written
 * **countdown**: For *repeated_message* the number of times the keywords have to appear
 * **frequency**: Return the job result only this % of times
-* **job_action**: The action triggered. There are currently two kind of job_actions suported:
+* **job_action**: The action triggered. There are currently five kind of job_actions suported:
  * *phrase*: Returns the data string
  * *random_phrase*: Returns a random string from the data strings list
  * *blog_link*: Returns a non used (in 24 hours) blog link from the RSS present at data field
  * *audio*: Returns a voice message already uploaded to Telegram servers which id is stored at data field
+ * *custom_poll*: Returns a string (first item of the string list) with a custom keyboard of answers that are the rest of the string list
 * **data**: The data used to return a value

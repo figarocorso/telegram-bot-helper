@@ -76,7 +76,7 @@ class JobStatus():
 
 class Job():
     available_types = ['user_message', 'command', 'repeated_message']
-    available_jobs = ['phrase', 'random_phrase', 'blog_link', 'audio']
+    available_jobs = ['phrase', 'random_phrase', 'blog_link', 'audio', 'custom_poll']
 
     def __init__(self, raw_job):
         self.raw_job = raw_job
@@ -185,6 +185,9 @@ class Job():
                 return AnswerMessage(link)
         except:
             return ''
+
+    def _custom_poll_result(self):
+        return AnswerMessage(self.data, 'poll')
 
 
 class MessageProcessor():

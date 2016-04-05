@@ -1,5 +1,6 @@
 from time import sleep
 import requests
+import json
 
 
 class InvalidMessage(Exception):
@@ -145,6 +146,7 @@ class AnswerMessage():
         'text': 'sendMessage',
         'audio': 'sendAudio',
         'photo': 'sendPhoto',
+        'poll': 'sendMessage',
     }
 
     def __init__(self, data, message_type='text'):
@@ -152,13 +154,28 @@ class AnswerMessage():
         if self.message_type not in self.method_correlation.keys():
             raise InvalidMessage("Wrong answer message type %s" % message_type)
 
-        self.data = {message_type: data}
+        self._create_message(data)
 
     def set_destination_chat(self, chat_id):
         self.data['chat_id'] = chat_id
 
     def in_reply_to(self, message):
         self.data['chat_id'] = message.chat_id
+
+    def _create_message(self, data):
+        if self.message_type == 'poll':
+            possible_answers = data[1:]
+            array_answers = []
+            for possible_answer in possible_answers:
+                array_answers.append([possible_answer])
+            reply_markup = {'keyboard': array_answers,
+                            'one_time_keyboard': True,
+                            'resize_keyboard': True}
+
+            self.data = {'text': data[0],
+                         'reply_markup': json.dumps(reply_markup)}
+        else:
+            self.data = {self.message_type: data}
 
     @property
     def method(self):
